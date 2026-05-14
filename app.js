@@ -30,51 +30,126 @@ function caesar(text, amount) {
   });
 }
 
-function createWheelLetters() {
+function polarPosition(size, radius, angleDeg) {
+  const angleRad = angleDeg * Math.PI / 180;
+
+  return {
+    x: size / 2 + Math.sin(angleRad) * radius,
+    y: size / 2 - Math.cos(angleRad) * radius
+  };
+}
+
+function createLetter(parent, char, className, radius, angle, size) {
+  const pos = polarPosition(size, radius, angle);
+
+  const letter = document.createElement("div");
+  letter.className = `letter ${className}`;
+  letter.textContent = char;
+
+  letter.style.left = `${pos.x}px`;
+  letter.style.top = `${pos.y}px`;
+
+  /*
+    ENTSCHEIDEND:
+    - Position wird mathematisch um den Mittelpunkt berechnet.
+    - Rotation entspricht dem Winkel auf der Scheibe.
+    - A oben bleibt gerade.
+    - Buchstaben rechts drehen nach rechts.
+    - Buchstaben unten stehen kopf.
+    - Buchstaben links drehen nach links.
+  */
+  letter.style.transform =
+    `translate(-50%, -50%) rotate(${angle}deg)`;
+
+  parent.appendChild(letter);
+}
+
+function createDivider(parent, radiusInner, radiusOuter, angle, size) {
+  const radiusMiddle = (radiusInner + radiusOuter) / 2;
+  const length = radiusOuter - radiusInner;
+  const pos = polarPosition(size, radiusMiddle, angle);
+
+  const divider = document.createElement("div");
+  divider.className = "dividerSegment";
+
+  divider.style.height = `${length}px`;
+  divider.style.left = `${pos.x}px`;
+  divider.style.top = `${pos.y}px`;
+
+  divider.style.transform =
+    `translate(-50%, -50%) rotate(${angle}deg)`;
+
+  parent.appendChild(divider);
+}
+
+function createRingBorder(parent, radius, size) {
+  const border = document.createElement("div");
+  border.className = "ringBorder";
+
+  border.style.width = `${radius * 2}px`;
+  border.style.height = `${radius * 2}px`;
+
+  parent.appendChild(border);
+}
+
+function createWheel() {
   outerRing.innerHTML = "";
   innerRing.innerHTML = "";
 
-  const rect = wheel.getBoundingClientRect();
-  const size = rect.width;
-
-  const outerRadius = size * 0.43;
-  const innerRadius = size * 0.31;
+  const size = wheel.getBoundingClientRect().width;
   const step = 360 / 26;
+
+  const outerOuterRadius = size * 0.50;
+  const outerInnerRadius = size * 0.40;
+  const outerLetterRadius = size * 0.455;
+
+  const innerOuterRadius = size * 0.395;
+  const innerInnerRadius = size * 0.25;
+  const innerLetterRadius = size * 0.325;
+
+  createRingBorder(outerRing, outerOuterRadius, size);
+  createRingBorder(outerRing, outerInnerRadius, size);
+
+  createRingBorder(innerRing, innerOuterRadius, size);
+  createRingBorder(innerRing, innerInnerRadius, size);
 
   for (let i = 0; i < 26; i++) {
     const angle = i * step;
+    const dividerAngle = angle - step / 2;
 
-    const outerLetter = document.createElement("div");
-    outerLetter.className = "letter outerLetter";
-    outerLetter.textContent = alphabet[i];
+    createDivider(
+      outerRing,
+      outerInnerRadius,
+      outerOuterRadius,
+      dividerAngle,
+      size
+    );
 
-    outerLetter.style.left = "50%";
-    outerLetter.style.top = "50%";
-    outerLetter.style.transform =
-      `rotate(${angle}deg) translateY(-${outerRadius}px) rotate(${angle}deg) translate(-50%, -50%)`;
+    createDivider(
+      innerRing,
+      innerInnerRadius,
+      innerOuterRadius,
+      dividerAngle,
+      size
+    );
 
-    outerRing.appendChild(outerLetter);
+    createLetter(
+      outerRing,
+      alphabet[i],
+      "outerLetter",
+      outerLetterRadius,
+      angle,
+      size
+    );
 
-    const innerLetter = document.createElement("div");
-    innerLetter.className = "letter innerLetter";
-    innerLetter.textContent = alphabet[i];
-
-    innerLetter.style.left = "50%";
-    innerLetter.style.top = "50%";
-    innerLetter.style.transform =
-      `rotate(${angle}deg) translateY(-${innerRadius}px) rotate(${angle}deg) translate(-50%, -50%)`;
-
-    innerRing.appendChild(innerLetter);
-
-    const outerDivider = document.createElement("div");
-    outerDivider.className = "divider";
-    outerDivider.style.transform = `rotate(${angle - step / 2}deg)`;
-    outerRing.appendChild(outerDivider);
-
-    const innerDivider = document.createElement("div");
-    innerDivider.className = "divider innerDivider";
-    innerDivider.style.transform = `rotate(${angle - step / 2}deg)`;
-    innerRing.appendChild(innerDivider);
+    createLetter(
+      innerRing,
+      alphabet[i],
+      "innerLetter",
+      innerLetterRadius,
+      angle,
+      size
+    );
   }
 }
 
@@ -88,6 +163,7 @@ function updateWheel() {
 
 function setShiftFromPointer(event) {
   const rect = wheel.getBoundingClientRect();
+
   const centerX = rect.left + rect.width / 2;
   const centerY = rect.top + rect.height / 2;
 
@@ -101,6 +177,7 @@ function setShiftFromPointer(event) {
   }
 
   shift = Math.round(angle / (360 / 26)) % 26;
+
   updateWheel();
 }
 
@@ -151,9 +228,9 @@ innerRing.addEventListener("pointercancel", () => {
 });
 
 window.addEventListener("resize", () => {
-  createWheelLetters();
+  createWheel();
   updateWheel();
 });
 
-createWheelLetters();
+createWheel();
 updateWheel();
