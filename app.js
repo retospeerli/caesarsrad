@@ -2,10 +2,8 @@ const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 const plainText = document.getElementById("plainText");
 const cipherText = document.getElementById("cipherText");
-
 const encryptBtn = document.getElementById("encryptBtn");
 const decryptBtn = document.getElementById("decryptBtn");
-
 const shiftInput = document.getElementById("shiftInput");
 
 const wheel = document.getElementById("wheel");
@@ -15,384 +13,147 @@ const innerRing = document.getElementById("innerRing");
 let shift = 3;
 let dragging = false;
 
-
-/* ======================================================
-   Hilfsfunktionen
-====================================================== */
-
 function normalizeShift(value) {
   return ((Number(value) % 26) + 26) % 26;
 }
 
-
 function caesar(text, amount) {
-
-  return text.replace(/[A-Za-zÄÖÜäöü]/g, char => {
-
+  return text.replace(/[A-Za-z]/g, char => {
     const upper = char.toUpperCase();
-
-    if (!alphabet.includes(upper)) {
-      return char;
-    }
-
     const oldIndex = alphabet.indexOf(upper);
+    const newIndex = normalizeShift(oldIndex + amount);
+    const result = alphabet[newIndex];
 
-    const newIndex =
-      normalizeShift(oldIndex + amount);
-
-    const result =
-      alphabet[newIndex];
-
-    if (char === char.toLowerCase()) {
-      return result.toLowerCase();
-    }
-
-    return result;
+    return char === char.toLowerCase()
+      ? result.toLowerCase()
+      : result;
   });
 }
 
-
-/* ======================================================
-   Buchstaben auf beide Ringe zeichnen
-====================================================== */
-
 function createWheelLetters() {
-
   outerRing.innerHTML = "";
   innerRing.innerHTML = "";
 
+  const rect = wheel.getBoundingClientRect();
+  const size = rect.width;
+
+  const outerRadius = size * 0.43;
+  const innerRadius = size * 0.31;
   const step = 360 / 26;
 
-
   for (let i = 0; i < 26; i++) {
-
     const angle = i * step;
 
+    const outerLetter = document.createElement("div");
+    outerLetter.className = "letter outerLetter";
+    outerLetter.textContent = alphabet[i];
 
-    /* -----------------------------------------
-       ÄUSSERER RING
-    ----------------------------------------- */
-
-    const outerLetter =
-      document.createElement("div");
-
-    outerLetter.className =
-      "letter outerLetter";
-
-    outerLetter.textContent =
-      alphabet[i];
-
-    /*
-       WICHTIG:
-
-       rotate(angle)
-       -> an Position drehen
-
-       translateY()
-       -> nach aussen setzen
-
-       rotate(180deg)
-       -> Unterkante zeigt zur Mitte
-    */
-
+    outerLetter.style.left = "50%";
+    outerLetter.style.top = "50%";
     outerLetter.style.transform =
-      `rotate(${angle}deg)
-       translateY(-183px)
-       rotate(180deg)
-       translate(-50%, -50%)`;
+      `rotate(${angle}deg) translateY(-${outerRadius}px) rotate(${angle}deg) translate(-50%, -50%)`;
 
-    outerRing.appendChild(
-      outerLetter
-    );
+    outerRing.appendChild(outerLetter);
 
+    const innerLetter = document.createElement("div");
+    innerLetter.className = "letter innerLetter";
+    innerLetter.textContent = alphabet[i];
 
-    /* Trennlinie */
-
-    const outerDivider =
-      document.createElement("div");
-
-    outerDivider.className =
-      "divider";
-
-    outerDivider.style.transform =
-      `rotate(${angle - step/2}deg)`;
-
-    outerRing.appendChild(
-      outerDivider
-    );
-
-
-
-    /* -----------------------------------------
-       INNERER RING
-    ----------------------------------------- */
-
-    const innerLetter =
-      document.createElement("div");
-
-    innerLetter.className =
-      "letter innerLetter";
-
-    innerLetter.textContent =
-      alphabet[i];
-
+    innerLetter.style.left = "50%";
+    innerLetter.style.top = "50%";
     innerLetter.style.transform =
-      `rotate(${angle}deg)
-       translateY(-134px)
-       rotate(180deg)
-       translate(-50%, -50%)`;
+      `rotate(${angle}deg) translateY(-${innerRadius}px) rotate(${angle}deg) translate(-50%, -50%)`;
 
-    innerRing.appendChild(
-      innerLetter
-    );
+    innerRing.appendChild(innerLetter);
 
+    const outerDivider = document.createElement("div");
+    outerDivider.className = "divider";
+    outerDivider.style.transform = `rotate(${angle - step / 2}deg)`;
+    outerRing.appendChild(outerDivider);
 
-    /* Trennlinie */
-
-    const innerDivider =
-      document.createElement("div");
-
-    innerDivider.className =
-      "divider innerDivider";
-
-    innerDivider.style.transform =
-      `rotate(${angle - step/2}deg)`;
-
-    innerRing.appendChild(
-      innerDivider
-    );
+    const innerDivider = document.createElement("div");
+    innerDivider.className = "divider innerDivider";
+    innerDivider.style.transform = `rotate(${angle - step / 2}deg)`;
+    innerRing.appendChild(innerDivider);
   }
 }
 
-
-
-/* ======================================================
-   Drehscheibe aktualisieren
-====================================================== */
-
 function updateWheel() {
+  shift = normalizeShift(shift);
+  shiftInput.value = shift;
 
-  shift =
-    normalizeShift(shift);
-
-  shiftInput.value =
-    shift;
-
-  const degrees =
-    shift * (360 / 26);
-
-  innerRing.style.transform =
-    `rotate(${degrees}deg)`;
+  const degrees = shift * (360 / 26);
+  innerRing.style.transform = `rotate(${degrees}deg)`;
 }
 
-
-
-/* ======================================================
-   Mausposition in Verschiebung umrechnen
-====================================================== */
-
 function setShiftFromPointer(event) {
+  const rect = wheel.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
 
-  const rect =
-    wheel.getBoundingClientRect();
+  const x = event.clientX - centerX;
+  const y = event.clientY - centerY;
 
-  const centerX =
-    rect.left + rect.width / 2;
-
-  const centerY =
-    rect.top + rect.height / 2;
-
-
-  const x =
-    event.clientX - centerX;
-
-  const y =
-    event.clientY - centerY;
-
-
-  let angle =
-    Math.atan2(y, x) *
-    180 / Math.PI + 90;
-
+  let angle = Math.atan2(y, x) * 180 / Math.PI + 90;
 
   if (angle < 0) {
     angle += 360;
   }
 
-
-  shift =
-    Math.round(
-      angle / (360 / 26)
-    ) % 26;
-
-
+  shift = Math.round(angle / (360 / 26)) % 26;
   updateWheel();
 }
 
-
-
-/* ======================================================
-   Verschlüsseln
-====================================================== */
-
 function encrypt() {
-
-  cipherText.value =
-    caesar(
-      plainText.value,
-      shift
-    );
+  cipherText.value = caesar(plainText.value, shift);
 }
-
-
-
-/* ======================================================
-   Entschlüsseln
-====================================================== */
 
 function decrypt() {
-
-  plainText.value =
-    caesar(
-      cipherText.value,
-      -shift
-    );
+  plainText.value = caesar(cipherText.value, -shift);
 }
 
+encryptBtn.addEventListener("click", encrypt);
+decryptBtn.addEventListener("click", decrypt);
 
+shiftInput.addEventListener("input", () => {
+  shift = normalizeShift(shiftInput.value);
+  updateWheel();
+});
 
-/* ======================================================
-   Buttons
-====================================================== */
-
-encryptBtn.addEventListener(
-  "click",
-  encrypt
-);
-
-
-decryptBtn.addEventListener(
-  "click",
-  decrypt
-);
-
-
-
-
-/* ======================================================
-   Shift-Feld
-====================================================== */
-
-shiftInput.addEventListener(
-  "input",
-  () => {
-
-    shift =
-      normalizeShift(
-        shiftInput.value
-      );
-
-    updateWheel();
-  }
-);
-
-
-
-
-/* ======================================================
-   Enter / Ctrl+Enter
-====================================================== */
-
-document.addEventListener(
-  "keydown",
-  event => {
-
-    if (
-      event.key === "Enter"
-      &&
-      event.ctrlKey
-    ) {
-
-      if (
-        document.activeElement
-        === cipherText
-      ) {
-        decrypt();
-      }
-
-      else {
-        encrypt();
-      }
+document.addEventListener("keydown", event => {
+  if (event.key === "Enter" && event.ctrlKey) {
+    if (document.activeElement === cipherText) {
+      decrypt();
+    } else {
+      encrypt();
     }
   }
-);
+});
 
+innerRing.addEventListener("pointerdown", event => {
+  dragging = true;
+  innerRing.setPointerCapture(event.pointerId);
+  setShiftFromPointer(event);
+});
 
-
-
-/* ======================================================
-   Dragging
-====================================================== */
-
-innerRing.addEventListener(
-  "pointerdown",
-  event => {
-
-    dragging = true;
-
-    innerRing.setPointerCapture(
-      event.pointerId
-    );
-
-    setShiftFromPointer(
-      event
-    );
+innerRing.addEventListener("pointermove", event => {
+  if (dragging) {
+    setShiftFromPointer(event);
   }
-);
+});
 
+innerRing.addEventListener("pointerup", () => {
+  dragging = false;
+});
 
+innerRing.addEventListener("pointercancel", () => {
+  dragging = false;
+});
 
-innerRing.addEventListener(
-  "pointermove",
-  event => {
-
-    if (!dragging) {
-      return;
-    }
-
-    setShiftFromPointer(
-      event
-    );
-  }
-);
-
-
-
-innerRing.addEventListener(
-  "pointerup",
-  () => {
-
-    dragging = false;
-  }
-);
-
-
-
-innerRing.addEventListener(
-  "pointercancel",
-  () => {
-
-    dragging = false;
-  }
-);
-
-
-
-
-/* ======================================================
-   Start
-====================================================== */
+window.addEventListener("resize", () => {
+  createWheelLetters();
+  updateWheel();
+});
 
 createWheelLetters();
-
 updateWheel();
