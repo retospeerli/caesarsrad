@@ -2,8 +2,10 @@ const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 const plainText = document.getElementById("plainText");
 const cipherText = document.getElementById("cipherText");
+
 const encryptBtn = document.getElementById("encryptBtn");
 const decryptBtn = document.getElementById("decryptBtn");
+
 const shiftInput = document.getElementById("shiftInput");
 
 const wheel = document.getElementById("wheel");
@@ -12,22 +14,39 @@ const innerRing = document.getElementById("innerRing");
 
 let shift = 3;
 let dragging = false;
+let isAnimating = false;
+
+let outerLetters = [];
+let innerLetters = [];
 
 function normalizeShift(value) {
   return ((Number(value) % 26) + 26) % 26;
 }
 
+function caesarChar(char, amount) {
+  const upper = char.toUpperCase();
+
+  if (!alphabet.includes(upper)) {
+    return char;
+  }
+
+  const oldIndex = alphabet.indexOf(upper);
+  const newIndex = normalizeShift(oldIndex + amount);
+  const result = alphabet[newIndex];
+
+  return char === char.toLowerCase()
+    ? result.toLowerCase()
+    : result;
+}
+
 function caesar(text, amount) {
   return text.replace(/[A-Za-z]/g, char => {
-    const upper = char.toUpperCase();
-    const oldIndex = alphabet.indexOf(upper);
-    const newIndex = normalizeShift(oldIndex + amount);
-    const result = alphabet[newIndex];
-
-    return char === char.toLowerCase()
-      ? result.toLowerCase()
-      : result;
+    return caesarChar(char, amount);
   });
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function polarPosition(size, radius, angleDeg) {
@@ -39,29 +58,21 @@ function polarPosition(size, radius, angleDeg) {
   };
 }
 
-function createLetter(parent, char, className, radius, angle, size) {
+function createLetter(parent, char, className, radius, angle, size, index) {
   const pos = polarPosition(size, radius, angle);
 
   const letter = document.createElement("div");
   letter.className = `letter ${className}`;
   letter.textContent = char;
+  letter.dataset.index = index;
 
   letter.style.left = `${pos.x}px`;
   letter.style.top = `${pos.y}px`;
-
-  /*
-    ENTSCHEIDEND:
-    - Position wird mathematisch um den Mittelpunkt berechnet.
-    - Rotation entspricht dem Winkel auf der Scheibe.
-    - A oben bleibt gerade.
-    - Buchstaben rechts drehen nach rechts.
-    - Buchstaben unten stehen kopf.
-    - Buchstaben links drehen nach links.
-  */
-  letter.style.transform =
-    `translate(-50%, -50%) rotate(${angle}deg)`;
+  letter.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
 
   parent.appendChild(letter);
+
+  return letter;
 }
 
 function createDivider(parent, radiusInner, radiusOuter, angle, size) {
@@ -75,14 +86,12 @@ function createDivider(parent, radiusInner, radiusOuter, angle, size) {
   divider.style.height = `${length}px`;
   divider.style.left = `${pos.x}px`;
   divider.style.top = `${pos.y}px`;
-
-  divider.style.transform =
-    `translate(-50%, -50%) rotate(${angle}deg)`;
+  divider.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
 
   parent.appendChild(divider);
 }
 
-function createRingBorder(parent, radius, size) {
+function createRingBorder(parent, radius) {
   const border = document.createElement("div");
   border.className = "ringBorder";
 
@@ -96,6 +105,9 @@ function createWheel() {
   outerRing.innerHTML = "";
   innerRing.innerHTML = "";
 
+  outerLetters = [];
+  innerLetters = [];
+
   const size = wheel.getBoundingClientRect().width;
   const step = 360 / 26;
 
@@ -107,11 +119,11 @@ function createWheel() {
   const innerInnerRadius = size * 0.25;
   const innerLetterRadius = size * 0.325;
 
-  createRingBorder(outerRing, outerOuterRadius, size);
-  createRingBorder(outerRing, outerInnerRadius, size);
+  createRingBorder(outerRing, outerOuterRadius);
+  createRingBorder(outerRing, outerInnerRadius);
 
-  createRingBorder(innerRing, innerOuterRadius, size);
-  createRingBorder(innerRing, innerInnerRadius, size);
+  createRingBorder(innerRing, innerOuterRadius);
+  createRingBorder(innerRing, innerInnerRadius);
 
   for (let i = 0; i < 26; i++) {
     const angle = i * step;
@@ -133,22 +145,24 @@ function createWheel() {
       size
     );
 
-    createLetter(
+    outerLetters[i] = createLetter(
       outerRing,
       alphabet[i],
       "outerLetter",
       outerLetterRadius,
       angle,
-      size
+      size,
+      i
     );
 
-    createLetter(
+    innerLetters[i] = createLetter(
       innerRing,
       alphabet[i],
       "innerLetter",
       innerLetterRadius,
       angle,
-      size
+      size,
+      i
     );
   }
 }
@@ -158,10 +172,98 @@ function updateWheel() {
   shiftInput.value = shift;
 
   const degrees = shift * (360 / 26);
-  innerRing.style.transform = `rotate(${degrees}deg)`;
+  innerRing.style.transform = `rotate(${-degrees}deg)`;
+}
+
+function clearHighlights() {
+  outerLetters.forEach(letter => {
+    letter.classList.remove("clearHighlight");
+  });
+
+  innerLetters.forEach(letter => {
+    letter.classList.remove("cipherHighlight");
+  });
+}
+
+function highlightPair(clearIndex, cipherIndex) {
+  clearHighlights();
+
+  if (outerLetters[clearIndex]) {
+    outerLetters[clearIndex].classList.add("clearHighlight");
+  }
+
+  if (innerLetters[cipherIndex]) {
+    innerLetters[cipherIndex].classList.add("cipherHighlight");
+  }
+}
+
+async function animateEncrypt() {
+  if (isAnimating) return;
+
+  isAnimating = true;
+  clearHighlights();
+
+  const input = plainText.value;
+  cipherText.value = "";
+
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i];
+    const upper = char.toUpperCase();
+
+    if (!alphabet.includes(upper)) {
+      cipherText.value += char;
+      continue;
+    }
+
+    const clearIndex = alphabet.indexOf(upper);
+    const cipherIndex = normalizeShift(clearIndex + shift);
+
+    highlightPair(clearIndex, cipherIndex);
+
+    cipherText.value += caesarChar(char, shift);
+
+    await sleep(300);
+  }
+
+  clearHighlights();
+  isAnimating = false;
+}
+
+async function animateDecrypt() {
+  if (isAnimating) return;
+
+  isAnimating = true;
+  clearHighlights();
+
+  const input = cipherText.value;
+  plainText.value = "";
+
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i];
+    const upper = char.toUpperCase();
+
+    if (!alphabet.includes(upper)) {
+      plainText.value += char;
+      continue;
+    }
+
+    const cipherIndex = alphabet.indexOf(upper);
+    const clearIndex = normalizeShift(cipherIndex - shift);
+
+    highlightPair(clearIndex, cipherIndex);
+
+    plainText.value += caesarChar(char, -shift);
+
+    await sleep(300);
+  }
+
+  clearHighlights();
+  isAnimating = false;
 }
 
 function setShiftFromPointer(event) {
+  if (isAnimating) return;
+
   const rect = wheel.getBoundingClientRect();
 
   const centerX = rect.left + rect.width / 2;
@@ -176,23 +278,18 @@ function setShiftFromPointer(event) {
     angle += 360;
   }
 
-  shift = Math.round(angle / (360 / 26)) % 26;
+  shift = Math.round(angle / (360 / 26));
+  shift = normalizeShift(shift);
 
   updateWheel();
 }
 
-function encrypt() {
-  cipherText.value = caesar(plainText.value, shift);
-}
-
-function decrypt() {
-  plainText.value = caesar(cipherText.value, -shift);
-}
-
-encryptBtn.addEventListener("click", encrypt);
-decryptBtn.addEventListener("click", decrypt);
+encryptBtn.addEventListener("click", animateEncrypt);
+decryptBtn.addEventListener("click", animateDecrypt);
 
 shiftInput.addEventListener("input", () => {
+  if (isAnimating) return;
+
   shift = normalizeShift(shiftInput.value);
   updateWheel();
 });
@@ -200,23 +297,25 @@ shiftInput.addEventListener("input", () => {
 document.addEventListener("keydown", event => {
   if (event.key === "Enter" && event.ctrlKey) {
     if (document.activeElement === cipherText) {
-      decrypt();
+      animateDecrypt();
     } else {
-      encrypt();
+      animateEncrypt();
     }
   }
 });
 
 innerRing.addEventListener("pointerdown", event => {
+  if (isAnimating) return;
+
   dragging = true;
   innerRing.setPointerCapture(event.pointerId);
   setShiftFromPointer(event);
 });
 
 innerRing.addEventListener("pointermove", event => {
-  if (dragging) {
-    setShiftFromPointer(event);
-  }
+  if (!dragging) return;
+
+  setShiftFromPointer(event);
 });
 
 innerRing.addEventListener("pointerup", () => {
