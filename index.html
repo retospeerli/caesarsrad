@@ -1,0 +1,50 @@
+	
+ <!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cäsar-Verschlüsselung</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div>
+        <h1>Cäsar-Verschlüsselung</h1>
+        <p>Drehe die innere Scheibe oder stelle die Verschiebung direkt ein.</p>
+      </div>
+
+      <div class="shiftBox">
+        <label for="shiftInput">Verschiebung</label>
+        <input id="shiftInput" type="number" min="0" max="25" value="3" />
+      </div>
+    </section>
+
+    <section class="workspace">
+      <section class="panel">
+        <h2>Klartext</h2>
+        <textarea id="plainText" placeholder="Klartext eingeben oder einfügen ..."></textarea>
+        <button id="encryptBtn">Verschlüsseln ↘</button>
+      </section>
+
+      <section class="wheelCard">
+        <div id="wheel" class="wheel" aria-label="Cäsar-Scheibe">
+          <div class="outerRing" id="outerRing"></div>
+          <div class="innerRing" id="innerRing"></div>
+          <div class="centerDot"></div>
+          <div class="hint">ziehen</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Verschlüsselte Nachricht</h2>
+        <textarea id="cipherText" placeholder="Geheimtext eingeben oder einfügen ..."></textarea>
+        <button id="decryptBtn">Entschlüsseln ↙</button>
+      </section>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
