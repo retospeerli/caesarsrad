@@ -7,160 +7,158 @@ body {
   min-height: 100vh;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background:
-    radial-gradient(circle at top, #26364f 0%, #101827 45%, #070b12 100%);
-  color: #f7f7f7;
+    radial-gradient(circle at top, #223047 0%, #111827 46%, #050914 100%);
+  color: #f8fafc;
 }
 
 .app {
-  width: min(1200px, 94vw);
+  width: min(1500px, 96vw);
   margin: 0 auto;
-  padding: 32px 0;
+  padding: 24px 0;
 }
 
 .hero {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 24px;
-  align-items: center;
-  margin-bottom: 28px;
+  margin-bottom: 36px;
 }
 
 h1 {
   margin: 0;
-  font-size: clamp(2rem, 5vw, 4rem);
-  letter-spacing: -0.05em;
+  font-size: clamp(3rem, 6vw, 5.2rem);
+  line-height: 0.95;
+  letter-spacing: -0.07em;
 }
 
 p {
-  margin: 8px 0 0;
-  color: #cbd5e1;
-  font-size: 1.1rem;
+  margin: 20px 0 0;
+  font-size: 1.35rem;
+  color: #dbe4f0;
 }
 
 .shiftBox {
-  background: rgba(255, 255, 255, 0.09);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  padding: 16px;
-  border-radius: 22px;
-  min-width: 160px;
-  backdrop-filter: blur(12px);
+  min-width: 210px;
+  padding: 22px;
+  border-radius: 28px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.22);
 }
 
 .shiftBox label {
   display: block;
-  margin-bottom: 8px;
-  color: #cbd5e1;
-  font-size: 0.9rem;
+  margin-bottom: 10px;
+  color: #dbe4f0;
+  font-size: 1.05rem;
 }
 
 .shiftBox input {
   width: 100%;
-  font-size: 2rem;
-  text-align: center;
   border: 0;
-  border-radius: 14px;
-  padding: 8px;
-  background: #fff;
+  border-radius: 18px;
+  padding: 10px 12px;
+  font-size: 2.4rem;
+  text-align: center;
+  background: #f8fafc;
   color: #111827;
 }
 
 .workspace {
   display: grid;
-  grid-template-columns: 1fr minmax(320px, 440px) 1fr;
-  gap: 24px;
+  grid-template-columns: 1fr 1.25fr 1fr;
+  gap: 30px;
   align-items: stretch;
 }
 
 .panel,
 .wheelCard {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 28px;
-  padding: 22px;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(14px);
+  border-radius: 32px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04));
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.36);
 }
 
 .panel {
+  padding: 28px;
   display: flex;
   flex-direction: column;
 }
 
-h2 {
-  margin: 0 0 14px;
-  font-size: 1.25rem;
+.panel h2 {
+  margin: 0 0 18px;
+  font-size: 1.55rem;
 }
 
 textarea {
   flex: 1;
-  min-height: 360px;
+  min-height: 450px;
   resize: vertical;
   border: 0;
   outline: none;
-  border-radius: 20px;
-  padding: 18px;
-  font-size: 1.15rem;
-  line-height: 1.55;
+  border-radius: 24px;
+  padding: 26px 22px;
+  font-size: 1.35rem;
+  line-height: 1.6;
   background: #f8fafc;
   color: #111827;
   box-shadow: inset 0 0 0 2px transparent;
 }
 
 textarea:focus {
-  box-shadow: inset 0 0 0 3px #fbbf24;
+  box-shadow: inset 0 0 0 4px #fbbf24;
 }
 
 button {
-  margin-top: 16px;
+  margin-top: 20px;
   border: 0;
-  border-radius: 18px;
-  padding: 15px 18px;
-  font-size: 1.05rem;
-  font-weight: 800;
+  border-radius: 22px;
+  padding: 18px 22px;
+  font-size: 1.35rem;
+  font-weight: 900;
   cursor: pointer;
-  background: linear-gradient(135deg, #fbbf24, #f97316);
-  color: #111827;
-  box-shadow: 0 12px 30px rgba(251, 191, 36, 0.25);
-}
-
-button:hover {
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #fbbf24, #fb7416);
+  color: #020617;
+  box-shadow: 0 18px 40px rgba(251, 191, 36, 0.22);
 }
 
 .wheelCard {
-  display: grid;
-  place-items: center;
+  padding: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .wheel {
   position: relative;
-  width: min(90vw, 420px);
+  width: min(560px, 100%);
   aspect-ratio: 1;
   border-radius: 50%;
   user-select: none;
   touch-action: none;
 }
 
-.outerRing,
+.outerRing {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle,
+      transparent 0%,
+      transparent 39.5%,
+      #f8fafc 40%,
+      #f8fafc 50%,
+      transparent 50.5%
+    );
+  filter: drop-shadow(0 18px 28px rgba(0,0,0,0.45));
+}
+
 .innerRing {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-}
-
-.outerRing {
-  background: #f8fafc;
-  border: 4px solid #111827;
-  box-shadow:
-    inset 0 0 0 1px #111827,
-    0 20px 50px rgba(0, 0, 0, 0.45);
-}
-
-.innerRing {
-  inset: 64px;
-  background: #f8fafc;
-  border: 3px solid #111827;
-  transition: transform 0.25s ease;
+  transform-origin: 50% 50%;
   cursor: grab;
 }
 
@@ -168,50 +166,82 @@ button:hover {
   cursor: grabbing;
 }
 
+.innerRing::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle,
+      transparent 0%,
+      transparent 24.5%,
+      #f8fafc 25%,
+      #f8fafc 39.5%,
+      transparent 40%
+    );
+}
+
+.innerHole {
+  position: absolute;
+  inset: 25%;
+  border-radius: 50%;
+  background: radial-gradient(circle at top, #1b2637, #111827);
+  box-shadow:
+    inset 0 0 0 2px rgba(0,0,0,0.28),
+    0 0 0 2px rgba(0,0,0,0.25);
+  pointer-events: none;
+}
+
 .letter {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  z-index: 3;
   color: #020617;
-  font-weight: 700;
-  transform-origin: center;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  transform-origin: 50% 50%;
   pointer-events: none;
 }
 
 .outerLetter {
-  font-size: 1.75rem;
+  font-size: clamp(1.25rem, 3.3vw, 2.2rem);
 }
 
 .innerLetter {
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 2.4vw, 1.7rem);
 }
 
-.divider {
+.dividerSegment {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 1px;
-  height: 50%;
-  background: #111827;
-  transform-origin: top center;
+  width: 1.2px;
+  background: rgba(15, 23, 42, 0.7);
+  transform-origin: 50% 50%;
   pointer-events: none;
 }
 
-.innerDivider {
-  height: 50%;
-  opacity: 0.65;
+.ringBorder {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: 2px solid rgba(15, 23, 42, 0.9);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 .centerDot {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 22px;
-  height: 22px;
-  background: #fbbf24;
+  z-index: 8;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
+  background: #fbbf24;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 0 10px rgba(251, 191, 36, 0.18);
+  box-shadow: 0 0 0 9px rgba(251,191,36,0.18);
   pointer-events: none;
 }
 
@@ -219,24 +249,34 @@ button:hover {
   position: absolute;
   left: 50%;
   top: 58%;
+  z-index: 8;
   transform: translateX(-50%);
-  color: #64748b;
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 800;
+  color: #6b7280;
   pointer-events: none;
 }
 
-@media (max-width: 980px) {
+.wheelInfo {
+  margin-top: 22px;
+  padding: 14px 28px;
+  border-radius: 16px;
+  color: #dbe4f0;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.16);
+  text-align: center;
+  font-size: 1.05rem;
+}
+
+@media (max-width: 1100px) {
   .workspace {
     grid-template-columns: 1fr;
   }
 
-  .hero {
-    flex-direction: column;
-    align-items: stretch;
+  textarea {
+    min-height: 260px;
   }
 
-  textarea {
-    min-height: 220px;
+  .hero {
+    flex-direction: column;
   }
 }
